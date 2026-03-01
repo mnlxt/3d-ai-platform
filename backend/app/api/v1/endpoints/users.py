@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
+from app.models.project import Project
 from app.schemas.user import UserUpdate, UserResponse, PasswordChange
 from app.core.security import (
     get_current_user,
@@ -119,12 +120,99 @@ async def update_user_role(
     return {"message": "角色更新成功", "user": UserResponse.from_orm(user)}
 
 
+@router.put("/{user_id}/status")
+async def update_user_status(
+    user_id: int,
+    is_active: bool,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="用户不存在"
+        )
+    
+    if user.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="不能禁用当前登录的管理员账号"
+        )
+    
+    user.is_active = is_active
+    db.commit()
+    db.refresh(user)
+    
+    status_text = "启用" if is_active else "禁用"
+    return {"message": f"账号{status_text}成功", "user": UserResponse.from_orm(user)}
+
+
+@router.get("/{user_id}/projects")
+async def get_user_projects(
+    user_id: int,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="用户不存在"
+        )
+    
+    projects = db.query(Project).filter(Project.owner_id == user_id).all()
+    return projects
+
+
+@router.delete("/{user_id}")
+async def delete_user(
+    user_id: int,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="用户不存在"
+        )
+    
+    if user.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="不能删除当前登录的管理员账号"
+        )
+    
+    db.delete(user)
+    db.commit()
+    
+    return {"message": "用户删除成功"}
+
+
 @router.get("/", response_model=list[UserResponse])
 async def list_users(
     skip: int = 0,
     limit: int = 100,
+    role: str = None,
+    is_active: bool = None,
+    search: str = None,
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    users = db.query(User).offset(skip).limit(limit).all()
+    query = db.query(User)
+    
+    if role:
+        query = query.filter(User.role == role)
+    
+    if is_active is not None:
+        query = query.filter(User.is_active == is_active)
+    
+    if search:
+        query = query.filter(
+            User.username.contains(search) | 
+            User.email.contains(search)
+        )
+    
+    users = query.offset(skip).limit(limit).all()
     return users

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Boolean, Text, JSON
 from sqlalchemy.dialects.mysql import ENUM
+from sqlalchemy.orm import relationship
 from app.db.base import BaseModel
 
 class User(BaseModel):
@@ -23,3 +24,6 @@ class User(BaseModel):
         "auto_save": True,
         "default_model_format": "gltf"
     })
+
+    # 关联关系
+    appeals = relationship("Appeal", foreign_keys="Appeal.user_id", back_populates="user")

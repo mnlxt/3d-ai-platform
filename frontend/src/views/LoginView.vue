@@ -64,11 +64,12 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import type { FormInstance, FormRules } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const loginFormRef = ref<FormInstance>()
@@ -97,7 +98,18 @@ async function handleLogin() {
       authStore.clearError()
       const success = await authStore.login(loginForm.email, loginForm.password)
       if (success) {
-        router.push('/')
+        // 检查是否有重定向参数
+        const redirect = route.query.redirect as string
+        
+        if (redirect) {
+          router.push(redirect)
+        } else if (authStore.isAdmin) {
+          // 管理员登录后跳转到管理员界面
+          router.push('/admin')
+        } else {
+          // 普通用户跳转到首页
+          router.push('/')
+        }
       }
     }
   })
@@ -149,21 +161,19 @@ async function handleLogin() {
 
 .login-button {
   width: 100%;
-  height: 44px;
-  font-size: 16px;
 }
 
 .login-footer {
   text-align: center;
-  margin-top: 24px;
-  color: #666;
+  margin-top: 16px;
   font-size: 14px;
+  color: #666;
 }
 
 .register-link {
   color: #667eea;
   text-decoration: none;
-  margin-left: 4px;
+  margin-left: 8px;
 }
 
 .register-link:hover {

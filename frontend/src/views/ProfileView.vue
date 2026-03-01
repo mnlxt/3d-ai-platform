@@ -110,6 +110,13 @@
               修改密码
             </el-button>
             <el-button
+              type="info"
+              :icon="Message"
+              @click="showAppealDialog = true"
+            >
+              提交申诉
+            </el-button>
+            <el-button
               type="danger"
               :icon="SwitchButton"
               @click="handleLogout"
@@ -120,8 +127,45 @@
           </el-form-item>
         </el-form>
       </el-card>
+
+      <!-- 我的申诉记录 -->
+      <el-card class="profile-card">
+        <template #header>
+          <div class="card-header">
+            <span>我的申诉记录</span>
+          </div>
+        </template>
+        <el-table :data="myAppeals" v-loading="appealsLoading" style="width: 100%">
+          <el-table-column prop="title" label="标题" />
+          <el-table-column prop="type" label="类型" width="120">
+            <template #default="{ row }">
+              <el-tag :type="getAppealTypeType(row.type)">
+                {{ getAppealTypeName(row.type) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" width="120">
+            <template #default="{ row }">
+              <el-tag :type="getAppealStatusType(row.status)">
+                {{ getAppealStatusName(row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="created_at" label="提交时间" width="180">
+            <template #default="{ row }">
+              {{ formatDate(row.created_at) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="100">
+            <template #default="{ row }">
+              <el-button size="small" @click="showAppealDetail(row)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
     </div>
 
+    <!-- 修改密码对话框 -->
     <el-dialog
       v-model="showPasswordDialog"
       title="修改密码"
@@ -172,24 +216,117 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 提交申诉对话框 -->
+    <el-dialog
+      v-model="showAppealDialog"
+      title="提交申诉"
+      width="500px"
+    >
+      <el-form
+        ref="appealFormRef"
+        :model="appealForm"
+        :rules="appealRules"
+        label-width="100px"
+      >
+        <el-form-item label="申诉类型" prop="type">
+          <el-select v-model="appealForm.type" style="width: 100%">
+            <el-option label="账号问题" value="account" />
+            <el-option label="内容问题" value="content" />
+            <el-option label="其他" value="other" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="标题" prop="title">
+          <el-input
+            v-model="appealForm.title"
+            placeholder="请输入申诉标题"
+          />
+        </el-form-item>
+
+        <el-form-item label="详细描述" prop="description">
+          <el-input
+            v-model="appealForm.description"
+            type="textarea"
+            :rows="4"
+            placeholder="请详细描述您的问题..."
+            maxlength="1000"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="showAppealDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="submittingAppeal"
+          @click="submitAppeal"
+        >
+          提交申诉
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 申诉详情对话框 -->
+    <el-dialog
+      v-model="appealDetailVisible"
+      title="申诉详情"
+      width="500px"
+    >
+      <div v-if="currentAppeal" class="appeal-detail">
+        <div class="detail-item">
+          <span class="label">标题：</span>
+          <span>{{ currentAppeal.title }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">类型：</span>
+          <el-tag :type="getAppealTypeType(currentAppeal.type)">
+            {{ getAppealTypeName(currentAppeal.type) }}
+          </el-tag>
+        </div>
+        <div class="detail-item">
+          <span class="label">状态：</span>
+          <el-tag :type="getAppealStatusType(currentAppeal.status)">
+            {{ getAppealStatusName(currentAppeal.status) }}
+          </el-tag>
+        </div>
+        <div class="detail-item">
+          <span class="label">描述：</span>
+          <p class="description">{{ currentAppeal.description }}</p>
+        </div>
+        <div v-if="currentAppeal.admin_response" class="detail-item">
+          <span class="label">管理员回复：</span>
+          <p class="admin-response">{{ currentAppeal.admin_response }}</p>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
-import { Lock, SwitchButton } from '@element-plus/icons-vue'
+import { Lock, SwitchButton, Message } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+import { appealApi } from '@/api/appeal'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import type { Appeal } from '@/types/appeal'
 
 const authStore = useAuthStore()
 
 const isEditing = ref(false)
 const changingPassword = ref(false)
 const showPasswordDialog = ref(false)
+const showAppealDialog = ref(false)
+const submittingAppeal = ref(false)
+const appealsLoading = ref(false)
+const appealDetailVisible = ref(false)
+const currentAppeal = ref<any>(null)
 
 const profileFormRef = ref<FormInstance>()
 const passwordFormRef = ref<FormInstance>()
+const appealFormRef = ref<FormInstance>()
 
 const profileForm = reactive({
   username: '',
@@ -204,6 +341,14 @@ const passwordForm = reactive({
   newPassword: '',
   confirmPassword: '',
 })
+
+const appealForm = reactive({
+  type: 'account',
+  title: '',
+  description: '',
+})
+
+const myAppeals = ref<Appeal[]>([])
 
 const profileRules: FormRules = {
   username: [
@@ -238,6 +383,20 @@ const passwordRules: FormRules = {
   ],
 }
 
+const appealRules: FormRules = {
+  type: [
+    { required: true, message: '请选择申诉类型', trigger: 'change' },
+  ],
+  title: [
+    { required: true, message: '请输入申诉标题', trigger: 'blur' },
+    { max: 200, message: '标题不能超过200个字符', trigger: 'blur' },
+  ],
+  description: [
+    { required: true, message: '请输入详细描述', trigger: 'blur' },
+    { max: 1000, message: '描述不能超过1000个字符', trigger: 'blur' },
+  ],
+}
+
 onMounted(() => {
   if (authStore.user) {
     profileForm.username = authStore.user.username
@@ -246,7 +405,20 @@ onMounted(() => {
     profileForm.gender = authStore.user.gender || 'secret'
     profileForm.bio = authStore.user.bio || ''
   }
+  fetchMyAppeals()
 })
+
+async function fetchMyAppeals() {
+  appealsLoading.value = true
+  try {
+    const appeals = await appealApi.getMyAppeals()
+    myAppeals.value = appeals
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.detail || '获取申诉列表失败')
+  } finally {
+    appealsLoading.value = false
+  }
+}
 
 function startEdit() {
   isEditing.value = true
@@ -311,6 +483,38 @@ async function changePassword() {
   })
 }
 
+async function submitAppeal() {
+  if (!appealFormRef.value) return
+
+  await appealFormRef.value.validate(async (valid) => {
+    if (valid) {
+      submittingAppeal.value = true
+      try {
+        await appealApi.createAppeal({
+          type: appealForm.type as 'account' | 'content' | 'other',
+          title: appealForm.title,
+          description: appealForm.description,
+        })
+        ElMessage.success('申诉提交成功，管理员会尽快处理')
+        showAppealDialog.value = false
+        appealForm.type = 'account'
+        appealForm.title = ''
+        appealForm.description = ''
+        fetchMyAppeals()
+      } catch (err: any) {
+        ElMessage.error(err.response?.data?.detail || '申诉提交失败')
+      } finally {
+        submittingAppeal.value = false
+      }
+    }
+  })
+}
+
+function showAppealDetail(appeal: any) {
+  currentAppeal.value = appeal
+  appealDetailVisible.value = true
+}
+
 async function handleLogout() {
   try {
     await ElMessageBox.confirm(
@@ -347,6 +551,44 @@ function getRoleType(role?: string) {
   return typeMap[role || 'viewer'] || 'info'
 }
 
+function getAppealTypeName(type: string) {
+  const typeMap: Record<string, string> = {
+    account: '账号问题',
+    content: '内容问题',
+    other: '其他'
+  }
+  return typeMap[type] || type
+}
+
+function getAppealTypeType(type: string) {
+  const typeMap: Record<string, string> = {
+    account: 'danger',
+    content: 'warning',
+    other: 'info'
+  }
+  return typeMap[type] || 'info'
+}
+
+function getAppealStatusName(status: string) {
+  const statusMap: Record<string, string> = {
+    pending: '待处理',
+    processing: '处理中',
+    resolved: '已解决',
+    rejected: '已拒绝'
+  }
+  return statusMap[status] || status
+}
+
+function getAppealStatusType(status: string) {
+  const typeMap: Record<string, string> = {
+    pending: 'danger',
+    processing: 'warning',
+    resolved: 'success',
+    rejected: 'info'
+  }
+  return typeMap[status] || 'info'
+}
+
 function formatDate(date?: string) {
   if (!date) return ''
   return new Date(date).toLocaleString('zh-CN')
@@ -355,7 +597,7 @@ function formatDate(date?: string) {
 
 <style scoped>
 .profile-container {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -389,5 +631,34 @@ function formatDate(date?: string) {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+
+.appeal-detail {
+  .detail-item {
+    margin-bottom: 16px;
+    
+    .label {
+      font-weight: bold;
+      color: #606266;
+    }
+    
+    .description {
+      margin: 8px 0 0 0;
+      padding: 12px;
+      background-color: #f5f7fa;
+      border-radius: 4px;
+      color: #606266;
+      line-height: 1.6;
+    }
+    
+    .admin-response {
+      margin: 8px 0 0 0;
+      padding: 12px;
+      background-color: #f0f9ff;
+      border-radius: 4px;
+      color: #409EFF;
+      line-height: 1.6;
+    }
+  }
 }
 </style>

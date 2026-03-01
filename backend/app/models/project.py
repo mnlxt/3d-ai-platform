@@ -1,5 +1,6 @@
-from sqlalchemy import Column, String, Text, JSON, Integer
+from sqlalchemy import Column, String, Text, JSON, Integer, Boolean
 from sqlalchemy.dialects.mysql import ENUM
+from sqlalchemy.orm import relationship
 from app.db.base import BaseModel
 
 class Project(BaseModel):
@@ -11,6 +12,8 @@ class Project(BaseModel):
     
     # 项目状态
     status = Column(ENUM("draft", "processing", "completed", "archived"), default="draft")
+    is_public = Column(Boolean, default=True, nullable=False)  # 是否公开
+    
     # 项目数据
     model_data = Column(JSON, default={
         "model": None,
@@ -26,3 +29,6 @@ class Project(BaseModel):
         "texture_keys": [],
         "animation_keys": []
     })
+
+    # 关联关系
+    reports = relationship("ContentReport", back_populates="project")

@@ -11,7 +11,7 @@ from app.schemas.project import (
     ProjectResponse,
     ProjectListResponse,
 )
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_admin
 
 router = APIRouter()
 
@@ -86,6 +86,53 @@ async def create_project(
     db.refresh(new_project)
     
     return new_project
+
+
+# ========== 管理员接口 ==========
+
+@router.get("/all", response_model=list[ProjectResponse])
+async def get_all_projects(
+    skip: int = 0,
+    limit: int = 100,
+    status: Optional[str] = None,
+    is_public: Optional[bool] = None,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """管理员获取所有作品列表"""
+    query = db.query(Project)
+    
+    if status:
+        query = query.filter(Project.status == status)
+    
+    if is_public is not None:
+        query = query.filter(Project.is_public == is_public)
+    
+    projects = query.offset(skip).limit(limit).all()
+    return projects
+
+
+@router.put("/{project_id}/public", response_model=ProjectResponse)
+async def toggle_project_public(
+    project_id: int,
+    is_public: bool,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """管理员设置作品公开/私密状态"""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="项目不存在"
+        )
+    
+    project.is_public = is_public
+    db.commit()
+    db.refresh(project)
+    
+    return project
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)

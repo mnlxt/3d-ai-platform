@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import HomeView from '../views/HomeView.vue'
 import CreateView from '../views/CreateView.vue'
 import ModelingView from '../views/ModelingView.vue'
@@ -10,6 +11,14 @@ import ProfileSetupView from '../views/ProfileSetupView.vue'
 import LibraryView from '../views/LibraryView.vue'
 import ProjectDetailView from '../views/ProjectDetailView.vue'
 import NotFound from '../views/NotFound.vue'
+
+// Admin
+import AdminLayout from '../layouts/AdminLayout.vue'
+import AdminDashboard from '../views/admin/DashboardView.vue'
+import AdminUsers from '../views/admin/UsersView.vue'
+import AdminAppeals from '../views/admin/AppealsView.vue'
+import AdminProjects from '../views/admin/ProjectsView.vue'
+import AdminReports from '../views/admin/ReportsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -72,6 +81,43 @@ const router = createRouter({
       component: ProjectDetailView,
       meta: { requiresAuth: true },
     },
+    // Admin routes
+    {
+      path: '/admin',
+      component: AdminLayout,
+      meta: { requiresAuth: true, requiresAdmin: true },
+      children: [
+        {
+          path: '',
+          redirect: '/admin/dashboard',
+        },
+        {
+          path: 'dashboard',
+          name: 'admin-dashboard',
+          component: AdminDashboard,
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: AdminUsers,
+        },
+        {
+          path: 'appeals',
+          name: 'admin-appeals',
+          component: AdminAppeals,
+        },
+        {
+          path: 'projects',
+          name: 'admin-projects',
+          component: AdminProjects,
+        },
+        {
+          path: 'reports',
+          name: 'admin-reports',
+          component: AdminReports,
+        },
+      ],
+    },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
@@ -82,14 +128,36 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('token')
+  const authStore = useAuthStore()
   
   if (to.meta.requiresAuth && !token) {
     next({ name: 'login', query: { redirect: to.fullPath } })
-  } else if (to.meta.guest && token) {
-    next({ name: 'home' })
-  } else {
-    next()
+    return
   }
+  
+  if (to.meta.requiresAdmin) {
+    if (!token) {
+      next({ name: 'login', query: { redirect: to.fullPath } })
+      return
+    }
+    
+    // 如果有 token 但没有用户信息，先获取用户信息
+    if (!authStore.user) {
+      await authStore.fetchUser()
+    }
+    
+    if (!authStore.isAdmin) {
+      next({ name: 'home' })
+      return
+    }
+  }
+  
+  if (to.meta.guest && token) {
+    next({ name: 'home' })
+    return
+  }
+  
+  next()
 })
 
 export default router
