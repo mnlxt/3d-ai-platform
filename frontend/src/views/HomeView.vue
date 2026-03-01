@@ -9,6 +9,9 @@
         <router-link to="/library" class="btn-library">
           <span class="btn-icon">📁</span>我的项目库
         </router-link>
+        <router-link to="/profile" class="btn-profile">
+          <span class="btn-icon">👤</span>个人中心
+        </router-link>
       </div>
     </div>
 
@@ -101,7 +104,7 @@
   flex-wrap: wrap;
 }
 
-.btn-primary, .btn-secondary, .btn-library {
+.btn-primary, .btn-secondary, .btn-library, .btn-profile {
   padding: 15px 30px;
   border-radius: 30px;
   text-decoration: none;
@@ -140,6 +143,21 @@
 }
 
 .btn-library:hover {
+  background: white;
+  color: #667eea;
+  border-color: white;
+}
+
+.btn-profile {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-profile:hover {
   background: white;
   color: #667eea;
   border-color: white;

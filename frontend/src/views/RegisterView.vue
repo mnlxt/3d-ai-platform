@@ -140,7 +140,7 @@ async function handleRegister() {
         registerForm.password
       )
       if (success) {
-        router.push('/')
+        router.push('/profile-setup')
       }
     }
   })

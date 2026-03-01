@@ -21,6 +21,8 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50, description="用户名")
     phone: Optional[str] = Field(None, max_length=20, description="手机号")
     avatar_url: Optional[str] = Field(None, max_length=500, description="头像URL")
+    gender: Optional[str] = Field(None, description="性别: male/female/secret")
+    bio: Optional[str] = Field(None, max_length=500, description="个人签名")
     preferences: Optional[dict] = Field(None, description="用户偏好设置")
 
 
@@ -28,6 +30,8 @@ class UserResponse(UserBase):
     id: int
     phone: Optional[str] = None
     avatar_url: Optional[str] = None
+    gender: Optional[str] = None
+    bio: Optional[str] = None
     role: str
     is_active: bool
     is_verified: bool

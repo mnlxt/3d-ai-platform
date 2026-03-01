@@ -39,6 +39,17 @@ async def update_my_info(
     if user_data.avatar_url is not None:
         current_user.avatar_url = user_data.avatar_url
     
+    if user_data.gender is not None:
+        if user_data.gender not in ["male", "female", "secret"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="无效的性别值"
+            )
+        current_user.gender = user_data.gender
+    
+    if user_data.bio is not None:
+        current_user.bio = user_data.bio
+    
     if user_data.preferences is not None:
         current_user.preferences = user_data.preferences
     

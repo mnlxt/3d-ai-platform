@@ -4,6 +4,8 @@ export interface User {
   email: string
   phone?: string
   avatar_url?: string
+  gender?: 'male' | 'female' | 'secret'
+  bio?: string
   role: 'admin' | 'creator' | 'viewer'
   is_active: boolean
   is_verified: boolean
@@ -27,6 +29,8 @@ export interface UserUpdate {
   username?: string
   phone?: string
   avatar_url?: string
+  gender?: 'male' | 'female' | 'secret'
+  bio?: string
   preferences?: Record<string, any>
 }
 
@@ -39,4 +43,10 @@ export interface Token {
 export interface PasswordChange {
   old_password: string
   new_password: string
+}
+
+export const GenderMap: Record<string, { label: string; icon: string }> = {
+  male: { label: '男', icon: '👨' },
+  female: { label: '女', icon: '👩' },
+  secret: { label: '保密', icon: '🤫' }
 }

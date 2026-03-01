@@ -6,6 +6,7 @@ import TemplatesView from '../views/TemplatesView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import ProfileSetupView from '../views/ProfileSetupView.vue'
 import LibraryView from '../views/LibraryView.vue'
 import ProjectDetailView from '../views/ProjectDetailView.vue'
 import NotFound from '../views/NotFound.vue'
@@ -51,6 +52,12 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile-setup',
+      name: 'profile-setup',
+      component: ProfileSetupView,
       meta: { requiresAuth: true },
     },
     {
