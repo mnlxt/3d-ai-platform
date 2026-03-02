@@ -1,6 +1,9 @@
 <template>
   <div class="create-view">
     <div class="header">
+      <button class="home-btn" @click="goHome">
+        <span class="home-icon">🏠</span> 返回主页
+      </button>
       <h1>开始创作</h1>
       <p>选择一种方式开始创建你的3D角色</p>
     </div>
@@ -124,6 +127,10 @@ const handleGenerateSuccess = (taskId: string) => {
   showAI.value = false
   router.push({ path: '/modeling/generating', query: { taskId } })
 }
+
+const goHome = () => {
+  router.push('/')
+}
 </script>
 
 <style scoped>
@@ -136,6 +143,31 @@ const handleGenerateSuccess = (taskId: string) => {
 .header {
   text-align: center;
   margin-bottom: 3rem;
+  position: relative;
+}
+
+.home-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.home-btn:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.home-icon {
+  font-size: 1.2rem;
 }
 
 .header h1 {
