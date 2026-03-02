@@ -18,11 +18,11 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
-    "@types/three": "^0.183.1",
+    "@tweenjs/tween.js": "^25.0.0",
     "axios": "^1.13.5",
     "element-plus": "^2.13.2",
     "pinia": "^3.0.4",
-    "three": "^0.183.1",
+    "three": "^0.183.2",
     "vue": "^3.5.28",
     "vue-router": "^5.0.2"
   },
@@ -31,6 +31,7 @@
     "@tsconfig/node24": "^24.0.4",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^24.10.13",
+    "@types/three": "^0.183.1",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vitest/eslint-plugin": "^1.6.9",
     "@vue/eslint-config-typescript": "^14.6.0",

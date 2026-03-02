@@ -1,19 +1,25 @@
 <template>
   <div class="home-view">
+    <!-- 右上角个人中心按钮 -->
+    <router-link to="/profile" class="btn-profile-top">
+      <span class="btn-icon">👤</span>个人中心
+    </router-link>
+    
     <div class="hero-section">
       <h1>3D AI角色创作平台</h1>
       <p class="subtitle">使用AI技术快速创建3D角色模型</p>
       <div class="cta-buttons">
-        <router-link to="/create" class="btn-primary">开始创作</router-link>
-        <router-link to="/templates" class="btn-secondary">浏览模板</router-link>
+        <router-link to="/create" class="btn-primary">
+          <span class="btn-icon">✨</span>开始创作
+        </router-link>
+        <router-link to="/templates" class="btn-secondary">
+          <span class="btn-icon">📋</span>浏览模板
+        </router-link>
         <router-link to="/gallery" class="btn-gallery">
           <span class="btn-icon">🎨</span>公共画廊
         </router-link>
         <router-link to="/library" class="btn-library">
           <span class="btn-icon">📁</span>我的项目库
-        </router-link>
-        <router-link to="/profile" class="btn-profile">
-          <span class="btn-icon">👤</span>个人中心
         </router-link>
       </div>
     </div>
@@ -35,11 +41,6 @@
           <div class="feature-icon">📦</div>
           <h3>多格式导出</h3>
           <p>支持多种3D模型格式导出</p>
-        </div>
-        <div class="feature-card" @click="$router.push('/library')">
-          <div class="feature-icon">📁</div>
-          <h3>项目管理</h3>
-          <p>管理您的所有3D项目</p>
         </div>
       </div>
     </div>
@@ -81,6 +82,35 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  position: relative;
+}
+
+/* 右上角个人中心按钮 */
+.btn-profile-top {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 100;
+}
+
+.btn-profile-top:hover {
+  background: white;
+  color: #667eea;
+  border-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .hero-section {
@@ -107,12 +137,15 @@
   flex-wrap: wrap;
 }
 
-.btn-primary, .btn-secondary, .btn-gallery, .btn-library, .btn-profile {
+.btn-primary, .btn-secondary, .btn-gallery, .btn-library {
   padding: 15px 30px;
   border-radius: 30px;
   text-decoration: none;
   font-weight: bold;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .btn-primary {
@@ -140,9 +173,6 @@
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
   border: 2px solid transparent;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .btn-gallery:hover {
@@ -154,27 +184,9 @@
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.5);
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .btn-library:hover {
-  background: white;
-  color: #667eea;
-  border-color: white;
-}
-
-.btn-profile {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-profile:hover {
   background: white;
   color: #667eea;
   border-color: white;
