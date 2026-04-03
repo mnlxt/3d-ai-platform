@@ -1,4 +1,3 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
@@ -8,13 +7,13 @@ services:
     container_name: 3d-ai-mysql
     restart: always
     ports:
-      - "3308:3306"  # 保持端口不变，适配团队开发
+      - "3308:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: 3dai2026  # 团队通用密码
+      # 只保留 root 密码设置，删掉冲突的 MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: 3dai2026
       MYSQL_DATABASE: 3d_ai_platform
-      MYSQL_USER: root
-      MYSQL_PASSWORD: 3dai2026
       MYSQL_INITDB_SKIP_TZINFO: 1
+      # 确保使用旧版验证插件以适配当前的 pymysql 库
       MYSQL_AUTH_PLUGIN: mysql_native_password
     volumes:
       - mysql_data:/var/lib/mysql
@@ -54,11 +53,41 @@ services:
     networks:
       - 3d-ai-network
 
-# 数据卷：持久化存储
+  # MinIO初始化容器
+  minio-init:
+    image: minio/mc
+    container_name: 3d-ai-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set local http://minio:9000 admin 3dai2026;
+      /usr/bin/mc mb --ignore-existing local/3d-ai-assets;
+      /usr/bin/mc anonymous set public local/3d-ai-assets;
+      exit 0;
+      "
+    networks:
+      - 3d-ai-network
+
+  # Redis服务 (新增！异步任务的核心命脉)
+  redis:
+    image: redis:7-alpine
+    container_name: 3d-ai-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - 3d-ai-network
+
+# 数据卷：持久化存储 (增加了 redis_data)
 volumes:
   mysql_data:
   mongodb_data:
   minio_data:
+  redis_data:
 
 # 自定义网络：隔离服务
 networks:

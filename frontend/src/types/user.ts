@@ -16,6 +16,28 @@ export interface User {
   updated_at: string
 }
 
+export interface UserCreate {
+  username: string
+  email: string
+  password: string
+}
+
+export interface UserLogin {
+  email: string
+  password: string
+}
+
+export interface Token {
+  access_token: string
+  token_type: string
+  user: User
+}
+
+export interface PasswordChange {
+  old_password: string
+  new_password: string
+}
+
 export interface UserPublicResponse {
   user: User
   projects: Project[]

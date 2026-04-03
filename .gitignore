@@ -27,6 +27,7 @@ __pycache__/
 .env.local
 .env.development
 .env.production
+venv/
 
 # 密钥与证书
 *.pem

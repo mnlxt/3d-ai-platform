@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, projects, appeals, moderation, admin, files
+from app.api.v1.endpoints import auth, users, projects, appeals, moderation, admin, files, ai
 
 api_router = APIRouter()
 
@@ -10,3 +10,4 @@ api_router.include_router(appeals.router, prefix="/appeals", tags=["申诉"])
 api_router.include_router(moderation.router, prefix="/moderation", tags=["内容审核"])
 api_router.include_router(admin.router, prefix="/admin", tags=["管理员"])
 api_router.include_router(files.router, prefix="/files", tags=["文件上传"])
+api_router.include_router(ai.router, prefix="/ai", tags=["AI"])
